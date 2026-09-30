@@ -21,7 +21,7 @@ const SECTIONS = [
     ['unmute', 'unmute', 'ouvrir le groupe'],
     ['tagall', 'tagall', 'mentionner tous'],
     ['tag', 'tag @user texte', 'mention'],
-    ['warn', 'warn @user', 'avertir un membre'],
+    ['warn', '@user', 'avertir un membre'],
     ['welcome', 'welcome', 'activer bienvenue'],
     ['goodbye', 'goodbye', 'activer revoir'],
     ['setmenuimage', 'setmenuimage', 'image du menu']]],
@@ -38,7 +38,7 @@ const SECTIONS = [
   ['🎨', '𝗘𝗗𝗜𝗧𝗜𝗡𝗚', [
     ['image', 'image', 'chercher images'],
     ['sticker', 'sticker', 'créer un sticker'],
-    ['stickersearch', 'stickersearch', 'rechercher sticker'],
+    ['stickersearch', 'sticker', 'rechercher sticker'],
     ['toimg', 'toimg', 'sticker en image'],
     ['waouh', 'waouh', 'on sais tout'],
     ['humm', 'humm', 'on vois tout'],
