@@ -3,6 +3,7 @@ const cfg = require('./config');
 const db = require('./db');
 const registry = require('./registry');
 const protection = require('./protection');
+const antidelete = require('./antidelete');
 const { num, unwrap, typeOf, textOf, pick, download } = require('../lib/util');
 
 const metaCache = new Map(); // "session|group" -> { t, data }
@@ -49,39 +50,6 @@ function remember(s, msg) {
   if (s.cache.size > 250) s.cache.delete(s.cache.keys().next().value);
 }
 
-async function handleRevoke(s, msg, ctxBase) {
-  const proto = msg.message?.protocolMessage;
-  if (!proto || proto.type !== 0 || !proto.key?.id) return false;
-  const orig = s.cache.get(proto.key.id);
-  if (!orig || orig.key.fromMe) return true;
-  const from = msg.key.remoteJid;
-  const isGroup = from.endsWith('@g.us');
-  const g = isGroup ? protection.groupCfg(s.store, from) : null;
-  const enabled = isGroup ? g.antidelete : s.store.data.dmAntiDelete;
-  if (!enabled) return true;
-
-  const target = isGroup ? from : s.sock.user.id.split(':')[0] + '@s.whatsapp.net';
-  const who = orig.key.participant || orig.key.remoteJid;
-  const m = unwrap(orig.message);
-  const type = typeOf(m);
-  const head = `🗑️ *MESSAGE SUPPRIMÉ*\n👤 @${num(who)}${isGroup ? '' : '\n💬 Discussion privée'}\n`;
-  try {
-    if (type === 'conversation' || type === 'extendedTextMessage') {
-      await s.sock.sendMessage(target, { text: `${head}\n${textOf(m)}`, mentions: [who] });
-    } else if (['imageMessage', 'videoMessage', 'audioMessage', 'stickerMessage', 'documentMessage'].includes(type)) {
-      const kind = type.replace('Message', '');
-      const buf = await download(m[type], kind);
-      await s.sock.sendMessage(target, { text: head, mentions: [who] });
-      const payload = { [kind]: buf };
-      if (kind === 'audio') payload.mimetype = 'audio/mp4';
-      if (kind === 'document') { payload.mimetype = m[type].mimetype; payload.fileName = m[type].fileName; }
-      if (m[type].caption) payload.caption = m[type].caption;
-      await s.sock.sendMessage(target, payload);
-    }
-  } catch {}
-  return true;
-}
-
 async function handle(s, ev) {
   if (ev.type !== 'notify' && ev.type !== 'append') return;
   const store = attach(s);
@@ -95,7 +63,8 @@ async function handle(s, ev) {
       if (ev.type === 'append' && !msg.key.fromMe) continue;
 
       remember(s, msg);
-      if (await handleRevoke(s, msg)) continue;
+      if (await antidelete.revoke(s, msg)) continue;
+      antidelete.store(s, msg); // sauvegarde (texte + médias) pour l'antidelete, sans bloquer les commandes
 
       const isGroup = from.endsWith('@g.us');
       const botNum = num(sock.user?.id);
