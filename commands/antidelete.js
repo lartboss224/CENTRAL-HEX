@@ -1,13 +1,17 @@
 const { add } = require('../core/registry');
-const protection = require('../core/protection');
 
-add({ name: 'antidelete', cat: 'protection', desc: 'Anti-suppression', group: false, admin: true, async run(ctx) {
+// Même fonctionnement que ITACHI-XMD-V2 : un seul réglage, réservé au propriétaire.
+// Les messages supprimés (groupes + privé) sont envoyés en privé au propriétaire du bot.
+add({ name: 'antidelete', cat: 'protection', desc: 'Anti-suppression', owner: true, async run(ctx) {
   const v = (ctx.args[0] || '').toLowerCase();
-  const cur = ctx.isGroup ? protection.groupCfg(ctx.store, ctx.from).antidelete : ctx.store.data.dmAntiDelete;
-  if (!['on', 'off'].includes(v)) return ctx.reply(`🛡️ *Anti-suppression* : ${cur ? '🟢 activé' : '🔴 désactivé'}\nUtilise : *antidelete on* ou *antidelete off*`);
-  const val = v === 'on';
-  if (ctx.isGroup) protection.groupCfg(ctx.store, ctx.from).antidelete = val; else ctx.store.data.dmAntiDelete = val;
+  const cur = !!ctx.store.data.antidelete;
+
+  if (!v) {
+    return ctx.reply(`*CONFIGURATION ANTIDELETE*\n\nStatut actuel : ${cur ? '✅ Activé' : '❌ Désactivé'}\n\n*antidelete on* - Activer\n*antidelete off* - Désactiver`);
+  }
+  if (v !== 'on' && v !== 'off') return ctx.reply('*Commande invalide.* Utilise *antidelete* pour voir le mode d\'emploi.');
+
+  ctx.store.data.antidelete = v === 'on';
   ctx.store.save();
-  const need = ['antilink', 'antispam', 'antimarabout', 'antibot', 'antisticker', 'antipurge'].includes('antidelete') && !ctx.isBotAdmin && val ? '\n⚠️ Attention : le bot doit être *admin* pour agir.' : '';
-  await ctx.reply(`${val ? '🟢' : '🔴'} *Anti-suppression* ${val ? 'activé' : 'désactivé'}${ctx.isGroup ? '' : ' (discussions privées)'}.${need}`);
+  await ctx.reply(`*Antidelete ${v === 'on' ? 'activé' : 'désactivé'}*`);
 } });
