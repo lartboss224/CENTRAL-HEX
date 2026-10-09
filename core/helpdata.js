@@ -1,6 +1,9 @@
 // Explications détaillées de chaque commande (utilisées par : help <commande>)
 // [description, utilisation, exemple]
 module.exports = {
+  antivu: ["Quand c'est activé dans une discussion (groupe ou privé), chaque média « vue unique » reçu (photo, vidéo, audio) est affiché automatiquement, sans taper de commande. Mode on : renvoyé dans la discussion. Mode prive : envoyé seulement au propriétaire. Admins en groupe, propriétaire en privé. Alias : antivv.", "antivu on / prive / off   (propriétaire : antivu tout on)", "antivu on"],
+  chaine: ["Gère ta chaîne WhatsApp : tu écris ta publication, le bot l'organise (avec ou sans IA), puis tu la publies tout de suite ou à l'heure que tu choisis, avec une image si tu en joins une. Réservé au numéro connecté. Sous-commandes : lier, oui, refaire, non, idee, ia, style, signature, fuseau, liste, annuler, infos. Alias : chaîne, channel.", "chaine lier <lien de la chaîne>  puis  chaine <texte>  puis  chaine oui  ou  chaine 18:30", "chaine demain 08:00 Match ce soir à 20h, venez nombreux"],
+  hexscore: ["Affiche les scores, les heures et les minutes des matchs du jour (football, et basket avec l'option basket).", "hexscore  ou  hexscore live / fini / avenir / demain / hier / basket", "hexscore live"],
   menu: ["Affiche le menu illustré : infos du bot (propriétaire, mode, version) et toutes les commandes avec leur description.", "menu", "menu"],
   allmenu: ["Affiche la liste compacte de toutes les commandes, classées par catégorie (noms seulement).", "allmenu", "allmenu"],
   help: ["Sans nom : guide général du bot. Avec un nom de commande : explique en détail ce que fait cette commande.", "help  ou  help <commande>", "help humm"],
