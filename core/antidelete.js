@@ -1,7 +1,6 @@
 // Antidelete CENTRAL-HEX — logique reprise de ITACHI-XMD-V2
 // • Activé : chaque message reçu (texte + médias) est gardé en mémoire
 // • Quand quelqu'un le supprime, un rapport est envoyé EN PRIVÉ au propriétaire du bot
-// • Les médias « vue unique » sont transmis immédiatement au propriétaire (anti-viewonce)
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
@@ -34,7 +33,6 @@ async function store(s, msg) {
     const sender = isGroup
       ? (msg.key.participantAlt || msg.key.participant || msg.participant)
       : (msg.key.remoteJidAlt || from);
-    const viewOnce = !!(raw.viewOnceMessage || raw.viewOnceMessageV2 || raw.viewOnceMessageV2Extension || m[type]?.viewOnce);
 
     const entry = { content: '', mediaType: '', mediaPath: '', mime: '', fileName: '', sender, group: isGroup ? from : null, ts: Date.now() };
 
@@ -64,19 +62,6 @@ async function store(s, msg) {
       const k = st.keys().next().value;
       rm(st.get(k)?.mediaPath);
       st.delete(k);
-    }
-
-    // Anti-ViewOnce : transmis tout de suite au propriétaire
-    if (viewOnce && entry.mediaPath && ['image', 'video', 'audio'].includes(entry.mediaType)) {
-      try {
-        const name = num(sender);
-        const caption = `*👁️ Anti-ViewOnce ${entry.mediaType}*\nDe : @${name}` + (entry.content ? `\n\n${entry.content}` : '');
-        const buf = fs.readFileSync(entry.mediaPath);
-        const payload = entry.mediaType === 'audio'
-          ? { audio: buf, mimetype: 'audio/mpeg', ptt: false }
-          : { [entry.mediaType]: buf, caption, mentions: [sender] };
-        await s.sock.sendMessage(ownerJid(s), payload);
-      } catch {}
     }
   } catch (e) {
     console.error(`[${s.id}] antidelete.store:`, e.message);
