@@ -64,7 +64,10 @@ const SECTIONS = [
     ['profile', 'profile', 'profil'],
     ['couple', 'couple', 'couple'],
     ['poll', 'poll', 'sondage'],
-    ['emojimix', 'emojimix', "mélange d'emojis"]]]
+    ['emojimix', 'emojimix', "mélange d'emojis"],
+    ['hexscore', 'hexscore', 'scores des matchs']]],
+  ['📢', '𝗖𝗛𝗔𝗜𝗡𝗘', [
+    ['chaine', '<texte>', 'publier sur ta chaîne']]]
 ];
 
 function header(ctx) {
