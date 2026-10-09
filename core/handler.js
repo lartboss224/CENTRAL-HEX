@@ -4,6 +4,7 @@ const db = require('./db');
 const registry = require('./registry');
 const protection = require('./protection');
 const antidelete = require('./antidelete');
+const antivu = require('./antivu');
 const { num, unwrap, typeOf, textOf, pick, download } = require('../lib/util');
 
 const metaCache = new Map(); // "session|group" -> { t, data }
@@ -65,6 +66,7 @@ async function handle(s, ev) {
       remember(s, msg);
       if (await antidelete.revoke(s, msg)) continue;
       antidelete.store(s, msg); // sauvegarde (texte + médias) pour l'antidelete, sans bloquer les commandes
+      antivu.run(s, msg);       // anti-vue unique : affiche automatiquement les médias à vue unique
 
       const isGroup = from.endsWith('@g.us');
       const botNum = num(sock.user?.id);
