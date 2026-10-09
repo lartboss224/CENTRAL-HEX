@@ -58,6 +58,7 @@ async function handle(s, ev) {
 
   for (const msg of ev.messages) {
     try {
+      if (!msg.message && msg.key?.remoteJid && ev.type === 'notify') { antivu.stub(s, msg); continue; } // message arrivé sans contenu (ex. vue unique)
       if (!msg.message || !msg.key?.remoteJid) continue;
       const from = msg.key.remoteJid;
       if (from === 'status@broadcast' || from.endsWith('@newsletter') || from.endsWith('@broadcast')) continue;
