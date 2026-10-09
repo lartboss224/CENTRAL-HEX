@@ -73,4 +73,33 @@ async function run(s, msg) {
   }
 }
 
-module.exports = { run, cfgOf, modeFor };
+
+// Message arrivé SANS contenu (WhatsApp n'envoie pas toujours le média « vue unique » aux appareils liés comme le bot).
+// On prévient le propriétaire (1 fois / 30 s / discussion) pour qu'il puisse répondre au message avec « waouh ».
+const lastStub = new Map();
+async function stub(s, msg) {
+  try {
+    const from = msg.key.remoteJid;
+    if (!from || msg.key.fromMe || from === 'status@broadcast' || from.endsWith('@newsletter') || from.endsWith('@broadcast')) return;
+    const c = cfgOf(db.session(s.id));
+    const mode = modeFor(c, from);
+    if (!mode) return;
+    console.log(`[${s.id}] antivu: message reçu sans contenu (stub=${msg.messageStubType}, ${(msg.messageStubParameters || []).join(',')}) dans ${from}`);
+    if (msg.messageStubType !== 2) return; // 2 = contenu non délivré
+    const k = s.id + '|' + from;
+    if (Date.now() - (lastStub.get(k) || 0) < 30000) return;
+    lastStub.set(k, Date.now());
+    const isGroup = from.endsWith('@g.us');
+    const sender = isGroup ? (msg.key.participantAlt || msg.key.participant) : (msg.key.remoteJidAlt || from);
+    let where = isGroup ? '' : ' (discussion privée)';
+    if (isGroup) { try { where = ` dans *${(await s.sock.groupMetadata(from)).subject}*`; } catch {} }
+    await s.sock.sendMessage(s.sock.user.id.split(':')[0] + '@s.whatsapp.net', {
+      text: `👁️ *Message reçu sans contenu*${where}\nDe : @${num(sender)}${msg.pushName ? ` (${msg.pushName})` : ''}\n\nC'est sans doute une *vue unique* : WhatsApp ne transmet pas toujours ces médias au bot.\n👉 Ouvre la discussion et réponds à ce message avec *waouh* pour le récupérer.`,
+      mentions: sender ? [sender] : []
+    });
+  } catch (e) {
+    console.error(`[${s.id}] antivu.stub:`, e.message);
+  }
+}
+
+module.exports = { run, stub, cfgOf, modeFor };
